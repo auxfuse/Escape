@@ -20,9 +20,9 @@ def game_loop():
         player_x += 5
     elif keyboard.left:
         player_x -= 5
-    elif keyboard.up:
-        player_y -= 5
+    if keyboard.up:
+        player_y -= 10
     elif keyboard.down:
-        player_y += 5
+        player_y += 10
 
 clock.schedule_interval(game_loop, 0.03)
