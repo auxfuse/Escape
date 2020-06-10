@@ -1,11 +1,22 @@
-import time, random, math
-from constants import WIDTH, HEIGHT
+# Escape - A Python Adventure
+# by Sean McManus / www.sean.co.uk
+# Art by Rafael Pimenta
+# Typed in by PUT YOUR NAME HERE
 
-# Player Variables
-PLAYER_NAME = "Anthony"
-FRIEND1_NAME = "David"
-FRIEND2_NAME = "Dan"
-current_room = 31  # starting position room
+import time, random, math
+
+###############
+## VARIABLES ##
+###############
+
+WIDTH = 800  # window size
+HEIGHT = 800
+
+# PLAYER variables
+PLAYER_NAME = "Sean"  # change this to your name!
+FRIEND1_NAME = "Karen"  # change this to a friend's name!
+FRIEND2_NAME = "Leo"  # change this to another friend's name!
+current_room = 31  # start room = 31
 
 top_left_x = 100
 top_left_y = 150
@@ -22,26 +33,22 @@ player_y, player_x = 2, 5
 game_over = False
 
 PLAYER = {
-    "left": [
-        images.spacesuit_left, images.spacesuit_left_1,
-        images.spacesuit_left_2, images.spacesuit_left_3,
-        images.spacesuit_left_4
-    ],
-    "right": [
-        images.spacesuit_right, images.spacesuit_right_1,
-        images.spacesuit_right_2, images.spacesuit_right_3,
-        images.spacesuit_right_4
-    ],
-    "up": [
-        images.spacesuit_back, images.spacesuit_back_1,
-        images.spacesuit_back_2, images.spacesuit_back_3,
-        images.spacesuit_back_4
-    ],
-    "down": [
-        images.spacesuit_front, images.spacesuit_front_1,
-        images.spacesuit_front_2, images.spacesuit_front_3,
-        images.spacesuit_front_4
-    ],
+    "left": [images.spacesuit_left, images.spacesuit_left_1,
+             images.spacesuit_left_2, images.spacesuit_left_3,
+             images.spacesuit_left_4
+             ],
+    "right": [images.spacesuit_right, images.spacesuit_right_1,
+              images.spacesuit_right_2, images.spacesuit_right_3,
+              images.spacesuit_right_4
+              ],
+    "up": [images.spacesuit_back, images.spacesuit_back_1,
+           images.spacesuit_back_2, images.spacesuit_back_3,
+           images.spacesuit_back_4
+           ],
+    "down": [images.spacesuit_front, images.spacesuit_front_1,
+             images.spacesuit_front_2, images.spacesuit_front_3,
+             images.spacesuit_front_4
+             ]
 }
 
 player_direction = "down"
@@ -50,26 +57,22 @@ player_image = PLAYER[player_direction][player_frame]
 player_offset_x, player_offset_y = 0, 0
 
 PLAYER_SHADOW = {
-    "left": [
-        images.spacesuit_left_shadow, images.spacesuit_left_1_shadow,
-        images.spacesuit_left_2_shadow, images.spacesuit_left_3_shadow,
-        images.spacesuit_left_4_shadow
-    ],
-    "right": [
-        images.spacesuit_right_shadow, images.spacesuit_right_1_shadow,
-        images.spacesuit_right_2_shadow, images.spacesuit_right_3_shadow,
-        images.spacesuit_right_4_shadow
-    ],
-    "up": [
-        images.spacesuit_back_shadow, images.spacesuit_back_1_shadow,
-        images.spacesuit_back_2_shadow, images.spacesuit_back_3_shadow,
-        images.spacesuit_back_4_shadow
-    ],
-    "down": [
-        images.spacesuit_front_shadow, images.spacesuit_front_1_shadow,
-        images.spacesuit_front_2_shadow, images.spacesuit_front_3_shadow,
-        images.spacesuit_front_4_shadow
-    ]
+    "left": [images.spacesuit_left_shadow, images.spacesuit_left_1_shadow,
+             images.spacesuit_left_2_shadow, images.spacesuit_left_3_shadow,
+             images.spacesuit_left_3_shadow
+             ],
+    "right": [images.spacesuit_right_shadow, images.spacesuit_right_1_shadow,
+              images.spacesuit_right_2_shadow,
+              images.spacesuit_right_3_shadow, images.spacesuit_right_3_shadow
+              ],
+    "up": [images.spacesuit_back_shadow, images.spacesuit_back_1_shadow,
+           images.spacesuit_back_2_shadow, images.spacesuit_back_3_shadow,
+           images.spacesuit_back_3_shadow
+           ],
+    "down": [images.spacesuit_front_shadow, images.spacesuit_front_1_shadow,
+             images.spacesuit_front_2_shadow, images.spacesuit_front_3_shadow,
+             images.spacesuit_front_3_shadow
+             ]
 }
 
 player_image_shadow = PLAYER_SHADOW["down"][0]
@@ -88,56 +91,55 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (128, 0, 0)
 
+###############
+##    MAP    ##
+###############
 
-# Map details
 MAP_WIDTH = 5
 MAP_HEIGHT = 10
 MAP_SIZE = MAP_WIDTH * MAP_HEIGHT
 
-GAME_MAP = [
-    # ["Room name", height, width, top exit?, right exit?]
-    ["Room 0 - Non-essential objects store", 0, 0, False, False]
-]
+GAME_MAP = [["Room 0 - where unused objects are kept", 0, 0, False, False]]
 
-# Outdoor portion of map
 outdoor_rooms = range(1, 26)
-for planet_sectors in range(1, 26):
-    GAME_MAP.append(
-        ["Dusty red planet's surface", 13, 13, True, True]
-    )
+for planetsectors in range(1, 26):  # rooms 1 to 25 are generated here
+    GAME_MAP.append(["The dusty planet surface", 13, 13, True, True])
 
 GAME_MAP += [
     # ["Room name", height, width, Top exit?, Right exit?]
-    ["The airlock", 13, 5, True, False],
-    ["The engineering lab", 13, 13, False, False],
-    ["Poodle Mission Control", 9, 13, False, True],
-    ["The viewing gallery", 9, 15, False, False],
-    ["The crew's bathroom", 5, 5, False, False],
-    ["The airlock entry bay", 7, 11, True, True],
-    ["Left elbow room", 9, 7, True, False],
-    ["Right elbow room", 7, 13, True, True],
-    ["The science lab", 13, 13, False, True],
-    ["The greenhouse", 13, 13, True, False],
-    [PLAYER_NAME + "'s sleeping quarters", 9, 11, False, False],
-    ["West corridor", 15, 5, True, True],
-    ["The briefing room", 7, 13, False, True],
-    ["The crew's community room", 11, 13, True, False],
-    ["Main Mission Control", 14, 14, False, False],
-    ["The sick bay", 12, 7, True, False],
-    ["West corridor", 9, 7, True, False],
-    ["Utilities control room", 9, 9, False, True],
-    ["Systems engineering bay", 9, 11, False, False],
-    ["Security portal to Mission Control", 7, 7, True, False],
-    [FRIEND1_NAME + "'s sleeping quarters", 9, 11, True, True],
-    [FRIEND2_NAME + "'s sleeping quarters", 9, 11, True, True],
-    ["The pipeworks", 13, 11, True, False],
-    ["The chief scientist's office", 9, 7, True, True],
-    ["The robot workshop", 9, 11, True, False]
+    ["The airlock", 13, 5, True, False],  # room 26
+    ["The engineering lab", 13, 13, False, False],  # room 27
+    ["Poodle Mission Control", 9, 13, False, True],  # room 28
+    ["The viewing gallery", 9, 15, False, False],  # room 29
+    ["The crew's bathroom", 5, 5, False, False],  # room 30
+    ["The airlock entry bay", 7, 11, True, True],  # room 31
+    ["Left elbow room", 9, 7, True, False],  # room 32
+    ["Right elbow room", 7, 13, True, True],  # room 33
+    ["The science lab", 13, 13, False, True],  # room 34
+    ["The greenhouse", 13, 13, True, False],  # room 35
+    [PLAYER_NAME + "'s sleeping quarters", 9, 11, False, False],  # room 36
+    ["West corridor", 15, 5, True, True],  # room 37
+    ["The briefing room", 7, 13, False, True],  # room 38
+    ["The crew's community room", 11, 13, True, False],  # room 39
+    ["Main Mission Control", 14, 14, False, False],  # room 40
+    ["The sick bay", 12, 7, True, False],  # room 41
+    ["West corridor", 9, 7, True, False],  # room 42
+    ["Utilities control room", 9, 9, False, True],  # room 43
+    ["Systems engineering bay", 9, 11, False, False],  # room 44
+    ["Security portal to Mission Control", 7, 7, True, False],  # room 45
+    [FRIEND1_NAME + "'s sleeping quarters", 9, 11, True, True],  # room 46
+    [FRIEND2_NAME + "'s sleeping quarters", 9, 11, True, True],  # room 47
+    ["The pipeworks", 13, 11, True, False],  # room 48
+    ["The chief scientist's office", 9, 7, True, True],  # room 49
+    ["The robot workshop", 9, 11, True, False]  # room 50
 ]
 
-assert len(GAME_MAP) - 1 == MAP_SIZE
+# simple sanity check on map above to check data entry
+assert len(GAME_MAP) - 1 == MAP_SIZE, "Map size and GAME_MAP don't match"
 
-# Objects
+###############
+##  OBJECTS  ##
+###############
 
 objects = {
     0: [images.floor, None, "The floor is shiny and clean"],
@@ -169,25 +171,23 @@ objects = {
          "Pipes for the life support systems"],
     19: [images.pipes3, images.pipes3_shadow,
          "Pipes for the life support systems"],
-    20: [images.door, images.door_shadow,
-         "Safety door. Opens automatically for astronauts in functioning "
-         "spacesuits."],
-    21: [images.door, images.door_shadow,
-         "The airlock door. For safety reasons, it requires two person "
-         "operation."],
-    22: [images.door, images.door_shadow,
-         "A locked door. It needs " + PLAYER_NAME + "'s access card"],
-    23: [images.door, images.door_shadow,
-         "A locked door. It needs " + FRIEND1_NAME + "'s access card"],
-    24: [images.door, images.door_shadow,
-         "A locked door. It needs " + FRIEND2_NAME + "'s access card"],
+    20: [images.door, images.door_shadow, "Safety door. Opens automatically \
+for astronauts in functioning spacesuits."],
+    21: [images.door, images.door_shadow, "The airlock door. \
+For safety reasons, it requires two person operation."],
+    22: [images.door, images.door_shadow, "A locked door. It needs " \
+         + PLAYER_NAME + "'s access card"],
+    23: [images.door, images.door_shadow, "A locked door. It needs " \
+         + FRIEND1_NAME + "'s access card"],
+    24: [images.door, images.door_shadow, "A locked door. It needs " \
+         + FRIEND2_NAME + "'s access card"],
     25: [images.door, images.door_shadow,
          "A locked door. It is opened from Main Mission Control"],
     26: [images.door, images.door_shadow,
          "A locked door in the engineering bay."],
     27: [images.map, images.full_shadow,
-         "The screen says the crash site was Sector: "
-         + str(LANDER_SECTOR) + " // X: " + str(LANDER_X) +
+         "The screen says the crash site was Sector: " \
+         + str(LANDER_SECTOR) + " // X: " + str(LANDER_X) + \
          " // Y: " + str(LANDER_Y)],
     28: [images.rock_large, images.rock_large_shadow,
          "A rock. Its coarse surface feels like a whetstone", "the rock"],
@@ -211,7 +211,7 @@ objects = {
     39: [images.floor_pad, None,
          "A pressure sensor to make sure nobody goes out alone."],
     40: [images.rescue_ship, images.rescue_ship_shadow, "A rescue ship!"],
-    41: [images.mission_control_desk, images.mission_control_desk_shadow,
+    41: [images.mission_control_desk, images.mission_control_desk_shadow, \
          "Mission Control stations."],
     42: [images.button, images.button_shadow,
          "The button for opening the time-locked door in engineering."],
@@ -234,7 +234,7 @@ objects = {
     54: [images.bubble_gum, None,
          "A piece of sticky bubble gum. Spaceberry flavour.", "bubble gum"],
     55: [images.yoyo, None, "A toy made of fine, strong string and plastic. \
-        Used for antigrav experiments.", PLAYER_NAME + "'s yoyo"],
+Used for antigrav experiments.", PLAYER_NAME + "'s yoyo"],
     56: [images.thread, None,
          "A piece of fine, strong string", "a piece of string"],
     57: [images.needle, None,
@@ -261,20 +261,20 @@ objects = {
     68: [images.food, None,
          "A food pouch. Use it to get 100% energy.", "ready-to-eat food"],
     69: [images.book, None, "The book has the words 'Don't Panic' on the \
-        cover in large, friendly letters", "a book"],
+cover in large, friendly letters", "a book"],
     70: [images.mp3_player, None,
          "An MP3 player, with all the latest tunes", "an MP3 player"],
     71: [images.lander, None, "The Poodle, a small space exploration craft. \
-        Its black box has a radio sealed inside.", "the Poodle lander"],
+Its black box has a radio sealed inside.", "the Poodle lander"],
     72: [images.radio, None, "A radio communications system, from the \
-        Poodle", "a communications radio"],
+Poodle", "a communications radio"],
     73: [images.gps_module, None, "A GPS Module", "a GPS module"],
     74: [images.positioning_system, None, "Part of a positioning system. \
-        Needs a GPS module.", "a positioning interface"],
+Needs a GPS module.", "a positioning interface"],
     75: [images.positioning_system, None,
          "A working positioning system", "a positioning computer"],
     76: [images.scissors, None, "Scissors. They're too blunt to cut \
-        anything. Can you sharpen them?", "blunt scissors"],
+anything. Can you sharpen them?", "blunt scissors"],
     77: [images.scissors, None,
          "Razor-sharp scissors. Careful!", "sharpened scissors"],
     78: [images.credit, None,
@@ -289,13 +289,15 @@ objects = {
 }
 
 items_player_may_carry = list(range(53, 82))
-# Numbers below are for floor, pressure pad, soil, & toxic floor
+# Numbers below are for floor, pressure pad, soil, toxic floor.
 items_player_may_stand_on = items_player_may_carry + [0, 39, 2, 48]
 
+###############
+##  SCENERY  ##
+###############
 
 # Scenery describes objects that cannot move between rooms.
 # room number: [[object number, y position, x position]...]
-
 scenery = {
     26: [[39, 8, 2]],
     27: [[33, 5, 5], [33, 1, 1], [33, 1, 8], [47, 5, 2],
@@ -345,7 +347,8 @@ checksum = 0
 check_counter = 0
 for key, room_scenery_list in scenery.items():
     for scenery_item_list in room_scenery_list:
-        checksum += (scenery_item_list[0] * key + scenery_item_list[1] * (key+1)
+        checksum += (scenery_item_list[0] * key
+                     + scenery_item_list[1] * (key + 1)
                      + scenery_item_list[2] * (key + 2))
         check_counter += 1
 print(check_counter, "scenery items")
@@ -353,43 +356,39 @@ assert check_counter == 161, "Expected 161 scenery items"
 assert checksum == 200095, "Error in scenery data"
 print("Scenery checksum: " + str(checksum))
 
-# Add random scenery in planet locations
-for room in range(1, 26):
-    if room != 13:
+for room in range(1, 26):  # Add random scenery in planet locations.
+    if room != 13:  # Skip room 13.
         scenery_item = random.choice([16, 28, 29, 30])
         scenery[room] = [[scenery_item, random.randint(2, 10),
                           random.randint(2, 10)]]
 
-# Use loops to add fences to the planet surface rooms
+# Use loops to add fences to the planet surface rooms.
 for room_coordinate in range(0, 13):
-    # Add top fence
-    for room_number in [1, 2, 3, 4, 5]:
+    for room_number in [1, 2, 3, 4, 5]:  # Add top fence
         scenery[room_number] += [[31, 0, room_coordinate]]
-    # Add left fence
-    for room_number in [1, 6, 11, 16, 21]:
+    for room_number in [1, 6, 11, 16, 21]:  # Add left fence
         scenery[room_number] += [[31, room_coordinate, 0]]
-    # Add right fence
-    for room_number in [5, 10, 15, 20, 25]:
+    for room_number in [5, 10, 15, 20, 25]:  # Add right fence
         scenery[room_number] += [[31, room_coordinate, 12]]
-# Delete last fence panels where outside areas join the spacestation (rooms
-# 21 + 25)
-del scenery[21][-1]
-del scenery[25][-1]
+
+del scenery[21][-1]  # Delete last fence panel in Room 21
+del scenery[25][-1]  # Delete last fence panel in Room 25
 
 
-# Generate Map
+###############
+## MAKE MAP  ##
+###############
+
 def get_floor_type():
     if current_room in outdoor_rooms:
-        # soil
-        return 2
+        return 2  # soil
     else:
-        # tiled floor
-        return 0
+        return 0  # tiled floor
 
 
 def generate_map():
-    # generates map for the current room
-    # using room data, scene data & prop data
+    # This function makes the map for the current room,
+    # using room data, scenery data and prop data.
     global room_map, room_width, room_height, room_name, hazard_map
     global top_left_x, top_left_y, wall_transparency_frame
     room_data = GAME_MAP[current_room]
@@ -399,58 +398,49 @@ def generate_map():
 
     floor_type = get_floor_type()
     if current_room in range(1, 21):
-        # soil
-        bottom_edge = 2
-        # soil
-        side_edge = 2
+        bottom_edge = 2  # soil
+        side_edge = 2  # soil
     if current_room in range(21, 26):
-        # wall
-        bottom_edge = 1
-        # soil
-        side_edge = 2
+        bottom_edge = 1  # wall
+        side_edge = 2  # soil
     if current_room > 25:
-        # wall
-        bottom_edge = 1
-        # wall
-        side_edge = 1
+        bottom_edge = 1  # wall
+        side_edge = 1  # wall
 
-    # creating top row of room map
+    # Create top line of room map.
     room_map = [[side_edge] * room_width]
-    # creating floor of room (walls, floor to fill width, walls)
+    # Add middle lines of room map (wall, floor to fill width, wall).
     for y in range(room_height - 2):
-        room_map.append(
-            [side_edge] + [floor_type] * (room_width - 2) + [side_edge]
-        )
-    # creating bottom row of room map
+        room_map.append([side_edge]
+                        + [floor_type] * (room_width - 2) + [side_edge])
+    # Add bottom line of room map.
     room_map.append([bottom_edge] * room_width)
 
-    # creating door (exits)
+    # Add doorways.
     middle_row = int(room_height / 2)
     middle_column = int(room_width / 2)
 
-    # if exit is to right side of room
-    if room_data[4]:
+    if room_data[4]:  # If exit at right of this room
         room_map[middle_row][room_width - 1] = floor_type
         room_map[middle_row + 1][room_width - 1] = floor_type
         room_map[middle_row - 1][room_width - 1] = floor_type
 
-    if current_room % MAP_WIDTH != 1:
+    if current_room % MAP_WIDTH != 1:  # If room is not on left of map
         room_to_left = GAME_MAP[current_room - 1]
-        # generate left exit for current room if room on left has right exit
+        # If room on the left has a right exit, add left exit in this room
         if room_to_left[4]:
             room_map[middle_row][0] = floor_type
             room_map[middle_row + 1][0] = floor_type
             room_map[middle_row - 1][0] = floor_type
 
-        # if exit is to top of room
-        if room_data[3]:
-            room_map[0][middle_column] = floor_type
-            room_map[0][middle_column + 1] = floor_type
-            room_map[0][middle_column - 1] = floor_type
+    if room_data[3]:  # If exit at top of this room
+        room_map[0][middle_column] = floor_type
+        room_map[0][middle_column + 1] = floor_type
+        room_map[0][middle_column - 1] = floor_type
 
-    if current_room <= MAP_SIZE - MAP_WIDTH:
+    if current_room <= MAP_SIZE - MAP_WIDTH:  # If room is not on bottom row
         room_below = GAME_MAP[current_room + MAP_WIDTH]
-        # if room below has top exit, add bottom exit to current room
+        # If room below has a top exit, add exit at bottom of this one
         if room_below[3]:
             room_map[room_height - 1][middle_column] = floor_type
             room_map[room_height - 1][middle_column + 1] = floor_type
@@ -470,16 +460,17 @@ def generate_map():
             for tile_number in range(1, image_width_in_tiles):
                 room_map[scenery_y][scenery_x + tile_number] = 255
 
-    center_y = int(HEIGHT / 2)
+    center_y = int(HEIGHT / 2)  # Center of game window
     center_x = int(WIDTH / 2)
-    # Size of room in pixels
-    room_pixel_width = room_width * TILE_SIZE
+    room_pixel_width = room_width * TILE_SIZE  # Size of room in pixels
     room_pixel_height = room_height * TILE_SIZE
     top_left_x = center_x - 0.5 * room_pixel_width
     top_left_y = (center_y - 0.5 * room_pixel_height) + 110
 
 
-# Game Loop
+###############
+## GAME LOOP ##
+###############
 
 def game_loop():
     global player_x, player_y, current_room
@@ -500,11 +491,11 @@ def game_loop():
             player_offset_x = 0
             player_offset_y = 0
 
-# Save player's current position
+    # save player's current position
     old_player_x = player_x
     old_player_y = player_y
 
-# Move on key press
+    # move if key is pressed
     if player_frame == 0:
         if keyboard.right:
             from_player_x = player_x
@@ -512,7 +503,7 @@ def game_loop():
             player_x += 1
             player_direction = "right"
             player_frame = 1
-        elif keyboard.left:
+        elif keyboard.left:  # elif stops player making diagonal movements
             from_player_x = player_x
             from_player_y = player_y
             player_x -= 1
@@ -531,58 +522,50 @@ def game_loop():
             player_direction = "down"
             player_frame = 1
 
-    # check for exiting room
-    # go through door on right
-    if player_x == room_width:
+        # check for exiting the room
+    if player_x == room_width:  # through door on RIGHT
         # clock.unschedule(hazard_move)
         current_room += 1
         generate_map()
-        player_x = 0
-        # enter new room door
-        player_y = int(room_height / 2)
+        player_x = 0  # enter at left
+        player_y = int(room_height / 2)  # enter at door
         player_frame = 0
-        # start room
+        # start_room()
         return
 
-    # go through door on left
-    if player_x == -1:
+    if player_x == -1:  # through door on LEFT
         # clock.unschedule(hazard_move)
         current_room -= 1
         generate_map()
-        player_x = room_width - 1
-        # enter new room door
-        player_y = int(room_height / 2)
+        player_x = room_width - 1  # enter at right
+        player_y = int(room_height / 2)  # enter at door
         player_frame = 0
-        # start room
+        # start_room()
         return
 
-    # go through door on bottom
-    if player_y == room_height:
+    if player_y == room_height:  # through door at BOTTOM
         # clock.unschedule(hazard_move)
         current_room += MAP_WIDTH
         generate_map()
-        player_y = 0
-        # enter new room door
-        player_x = int(room_width / 2)
+        player_y = 0  # enter at top
+        player_x = int(room_width / 2)  # enter at door
         player_frame = 0
-        # start room
+        # start_room()
         return
 
-    # go through door on top
-    if player_y == -1:
+    if player_y == -1:  # through door at TOP
         # clock.unschedule(hazard_move)
         current_room -= MAP_WIDTH
         generate_map()
-        player_y = room_height - 1
-        # enter new room door
-        player_x = int(room_width / 2)
+        player_y = room_height - 1  # enter at bottom
+        player_x = int(room_width / 2)  # enter at door
         player_frame = 0
-        # start room
+        # start_room()
         return
 
-    # if the player is standing somewhere they shouldn't, move them back
-    if room_map[player_y][player_x] not in items_player_may_stand_on:
-        # or hazard_map[player_y][player_x] != 0:
+        # If the player is standing somewhere they shouldn't, move them back.
+    if room_map[player_y][player_x] not in items_player_may_stand_on:  # \
+        #           or hazard_map[player_y][player_x] != 0:
         player_x = old_player_x
         player_y = old_player_y
         player_frame = 0
@@ -597,18 +580,23 @@ def game_loop():
         player_offset_y = -1 + (0.25 * player_frame)
 
 
-# Draw Map
+###############
+##  DISPLAY  ##
+###############
+
 def draw_image(image, y, x):
     screen.blit(
-        image, (top_left_x + (x * TILE_SIZE),
-                top_left_y + (y * TILE_SIZE) - image.get_height())
+        image,
+        (top_left_x + (x * TILE_SIZE),
+         top_left_y + (y * TILE_SIZE) - image.get_height())
     )
 
 
 def draw_shadow(image, y, x):
     screen.blit(
-        image, (top_left_x + (x * TILE_SIZE),
-                top_left_y + (y * TILE_SIZE))
+        image,
+        (top_left_x + (x * TILE_SIZE),
+         top_left_y + (y * TILE_SIZE))
     )
 
 
@@ -625,22 +613,21 @@ def draw():
     if game_over:
         return
 
-    # clear the game arena area
+    # Clear the game arena area.
     box = Rect((0, 150), (800, 600))
     screen.draw.filled_rect(box, RED)
     box = Rect((0, 0), (800, top_left_y + (room_height - 1) * 30))
     screen.surface.set_clip(box)
     floor_type = get_floor_type()
 
-    # Set floor and items on top of floor
-    for y in range(room_height):
+    for y in range(room_height):  # Lay down floor tiles, then items on floor.
         for x in range(room_width):
             draw_image(objects[floor_type][0], y, x)
-            # draw shadows to fall on top of objects on floor
+            # Next line enables shadows to fall on top of objects on floor
             if room_map[y][x] in items_player_may_stand_on:
                 draw_image(objects[room_map[y][x]][0], y, x)
 
-    # pressure pad for room26 added here, so props go on top of it
+    # Pressure pad in room 26 is added here, so props can go on top of it.
     if current_room == 26:
         draw_image(objects[39][0], 8, 2)
         image_on_pad = room_map[8][2]
@@ -650,8 +637,7 @@ def draw():
     for y in range(room_height):
         for x in range(room_width):
             item_here = room_map[y][x]
-            # ensure player cannot walk on object 255 (non-existant
-            # placeholder object) to mark spaces used by wide objects
+            # Player cannot walk on 255: it marks spaces used by wide objects.
             if item_here not in items_player_may_stand_on + [255]:
                 image = objects[item_here][0]
 
@@ -661,44 +647,36 @@ def draw():
                         (current_room not in outdoor_rooms
                          and y == room_height - 1
                          and room_map[y][x] == 1
-                         and 0 < x < room_width - 1):
+                         and x > 0
+                         and x < room_width - 1):
                     # Add transparent wall image in the front row.
                     image = PILLARS[wall_transparency_frame]
 
                 draw_image(image, y, x)
 
-                if objects[item_here][1] is not None:
+                if objects[item_here][1] is not None:  # If object has a shadow
                     shadow_image = objects[item_here][1]
                     # if shadow might need horizontal tiling
-                    if shadow_image in [images.half_shadow, images.full_shadow]:
+                    if shadow_image in [images.half_shadow,
+                                        images.full_shadow]:
                         shadow_width = int(image.get_width() / TILE_SIZE)
-                        # use shadow across width of object
+                        # Use shadow across width of object.
                         for z in range(0, shadow_width):
-                            draw_shadow(shadow_image, y, x+z)
+                            draw_shadow(shadow_image, y, x + z)
                     else:
                         draw_shadow(shadow_image, y, x)
 
-        if player_y == y:
+        if (player_y == y):
             draw_player()
 
     screen.surface.set_clip(None)
 
 
-def adjust_wall_transparency():
-    global wall_transparency_frame
+###############
+##   START   ##
+###############
 
-    if (player_y == room_height - 2 and room_map[room_height - 1][player_x]
-            == 1 and wall_transparency_frame < 4):
-        # Fade walls out
-        wall_transparency_frame += 1
-
-    if ((player_y < room_height - 2 or room_map[room_height - 1][player_x] !=
-         1) and wall_transparency_frame > 0):
-        # Fade walls in
-        wall_transparency_frame -= 1
-
-
-# Start game
 generate_map()
 clock.schedule_interval(game_loop, 0.03)
-clock.schedule_interval(adjust_wall_transparency, 0.05)
+
+
