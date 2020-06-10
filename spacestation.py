@@ -5,7 +5,8 @@ from constants import WIDTH, HEIGHT
 PLAYER_NAME = "Anthony"
 FRIEND1_NAME = "David"
 FRIEND2_NAME = "Dan"
-current_room = 31  # starting position room
+# starting position room
+current_room = 31
 
 top_left_x = 100
 top_left_y = 150
@@ -113,7 +114,7 @@ GAME_MAP += [
     ["Poodle Mission Control", 9, 13, False, True],
     ["The viewing gallery", 9, 15, False, False],
     ["The crew's bathroom", 5, 5, False, False],
-    ["The airlock entry bay", 7, 11, True, True],
+    ["The airlock entry bay", 7, 11, False, True],
     ["Left elbow room", 9, 7, True, False],
     ["Right elbow room", 7, 13, True, True],
     ["The science lab", 13, 13, False, True],
@@ -481,6 +482,10 @@ def generate_map():
 
 # Game Loop
 
+def start_room():
+    show_text(f"Welcome to Room {current_room}, {room_name}", 0)
+
+
 def game_loop():
     global player_x, player_y, current_room
     global from_player_x, from_player_y
@@ -541,7 +546,7 @@ def game_loop():
         # enter new room door
         player_y = int(room_height / 2)
         player_frame = 0
-        # start room
+        start_room()
         return
 
     # go through door on left
@@ -553,7 +558,7 @@ def game_loop():
         # enter new room door
         player_y = int(room_height / 2)
         player_frame = 0
-        # start room
+        start_room()
         return
 
     # go through door on bottom
@@ -565,7 +570,7 @@ def game_loop():
         # enter new room door
         player_x = int(room_width / 2)
         player_frame = 0
-        # start room
+        start_room()
         return
 
     # go through door on top
@@ -577,7 +582,7 @@ def game_loop():
         # enter new room door
         player_x = int(room_width / 2)
         player_frame = 0
-        # start room
+        start_room()
         return
 
     # if the player is standing somewhere they shouldn't, move them back
@@ -696,6 +701,15 @@ def adjust_wall_transparency():
          1) and wall_transparency_frame > 0):
         # Fade walls in
         wall_transparency_frame -= 1
+
+
+def show_text(text_to_show, line_number):
+    if game_over:
+        return
+    text_lines = [15, 50]
+    box = Rect((0, text_lines[line_number]), (800, 35))
+    screen.draw.filled_rect(box, BLACK)
+    screen.draw.text(text_to_show, (20, text_lines[line_number]), color=GREEN)
 
 
 # Start game
