@@ -1,5 +1,8 @@
 import time, random, math
-from constants import WIDTH, HEIGHT
+
+# Variables
+WIDTH = 800
+HEIGHT = 800
 
 # Player Variables
 PLAYER_NAME = "Anthony"
@@ -102,7 +105,7 @@ GAME_MAP = [
 
 # Outdoor portion of map
 outdoor_rooms = range(1, 26)
-for planet_sectors in range(1, 26):
+for planetsectors in range(1, 26):
     GAME_MAP.append(
         ["Dusty red planet's surface", 13, 13, True, True]
     )
@@ -114,7 +117,7 @@ GAME_MAP += [
     ["Poodle Mission Control", 9, 13, False, True],
     ["The viewing gallery", 9, 15, False, False],
     ["The crew's bathroom", 5, 5, False, False],
-    ["The airlock entry bay", 7, 11, False, True],
+    ["The airlock entry bay", 7, 11, True, True],
     ["Left elbow room", 9, 7, True, False],
     ["Right elbow room", 7, 13, True, True],
     ["The science lab", 13, 13, False, True],
@@ -290,7 +293,7 @@ objects = {
 }
 
 items_player_may_carry = list(range(53, 82))
-# Numbers below are for floor, pressure pad, soil, & toxic floor
+# Numbers below are for floor, pressure pad, soil, toxic floor.
 items_player_may_stand_on = items_player_may_carry + [0, 39, 2, 48]
 
 
@@ -400,20 +403,14 @@ def generate_map():
 
     floor_type = get_floor_type()
     if current_room in range(1, 21):
-        # soil
-        bottom_edge = 2
-        # soil
-        side_edge = 2
+        bottom_edge = 2  # soil
+        side_edge = 2  # soil
     if current_room in range(21, 26):
-        # wall
-        bottom_edge = 1
-        # soil
-        side_edge = 2
+        bottom_edge = 1  # wall
+        side_edge = 2  # soil
     if current_room > 25:
-        # wall
-        bottom_edge = 1
-        # wall
-        side_edge = 1
+        bottom_edge = 1  # wall
+        side_edge = 1  # wall
 
     # creating top row of room map
     room_map = [[side_edge] * room_width]
@@ -443,11 +440,11 @@ def generate_map():
             room_map[middle_row + 1][0] = floor_type
             room_map[middle_row - 1][0] = floor_type
 
-        # if exit is to top of room
-        if room_data[3]:
-            room_map[0][middle_column] = floor_type
-            room_map[0][middle_column + 1] = floor_type
-            room_map[0][middle_column - 1] = floor_type
+    # if exit is to top of room
+    if room_data[3]:
+        room_map[0][middle_column] = floor_type
+        room_map[0][middle_column + 1] = floor_type
+        room_map[0][middle_column - 1] = floor_type
 
     if current_room <= MAP_SIZE - MAP_WIDTH:
         room_below = GAME_MAP[current_room + MAP_WIDTH]
@@ -666,7 +663,7 @@ def draw():
                         (current_room not in outdoor_rooms
                          and y == room_height - 1
                          and room_map[y][x] == 1
-                         and 0 < x < room_width - 1):
+                         and x > 0 and x < room_width - 1):
                     # Add transparent wall image in the front row.
                     image = PILLARS[wall_transparency_frame]
 
@@ -679,7 +676,7 @@ def draw():
                         shadow_width = int(image.get_width() / TILE_SIZE)
                         # use shadow across width of object
                         for z in range(0, shadow_width):
-                            draw_shadow(shadow_image, y, x+z)
+                            draw_shadow(shadow_image, y, x + z)
                     else:
                         draw_shadow(shadow_image, y, x)
 
