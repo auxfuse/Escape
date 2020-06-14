@@ -598,6 +598,9 @@ def game_loop():
         start_room()
         return
 
+    if keyboard.g:
+        pick_up_object()
+
     # if the player is standing somewhere they shouldn't, move them back
     if room_map[player_y][player_x] not in items_player_may_stand_on:
         # or hazard_map[player_y][player_x] != 0:
@@ -754,6 +757,46 @@ in_my_pockets = [55]
 # the first item
 selected_item = 0
 item_carrying = in_my_pockets[selected_item]
+
+
+def find_object_start_x():
+    checker_x = player_x
+    while room_map[player_y][checker_x] == 255:
+        checker_x -= 1
+    return checker_x
+
+
+def get_item_under_player():
+    item_x = find_object_start_x()
+    item_player_is_on = room_map[player_y][item_x]
+    return item_player_is_on
+
+
+def pick_up_object():
+    global room_map
+    item_player_is_on = get_item_under_player()
+    if item_player_is_on in items_player_may_carry:
+        room_map[player_y][player_x] = get_floor_type()
+        add_object(item_player_is_on)
+        show_text("Now carrying " + objects[item_player_is_on][3], 0)
+        sounds.pickup.play()
+        time.sleep(0.5)
+    else:
+        show_text("You can't carry that!", 0)
+
+
+def add_object(item):
+    global selected_item, item_carrying
+    in_my_pockets.append(item)
+    item_carrying = item
+    selected_item = len(in_my_pockets) - 1
+    display_inventory()
+    # Carried objects go into room 0 (non-existent level for storage)
+    props[item][0] = 0
+
+
+def display_inventory():
+    print(in_my_pockets)
 
 
 # Start game
