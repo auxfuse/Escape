@@ -491,10 +491,7 @@ def generate_map():
                 room_map[prop_y][prop_x + tile_number] = 255
 
 
-
-
 # Game Loop
-
 def start_room():
     show_text(f"Welcome to Room {current_room}, {room_name}", 0)
 
@@ -600,6 +597,19 @@ def game_loop():
 
     if keyboard.g:
         pick_up_object()
+
+    if keyboard.tab and len(in_my_pockets) > 0:
+        selected_item += 1
+        if selected_item > len(in_my_pockets) - 1:
+            selected_item = 0
+        item_carrying = in_my_pockets[selected_item]
+        display_inventory()
+
+    if keyboard.d and item_carrying:
+        drop_object(old_player_y, old_player_x)
+
+    if keyboard.space:
+        examine_object()
 
     # if the player is standing somewhere they shouldn't, move them back
     if room_map[player_y][player_x] not in items_player_may_stand_on:
@@ -796,10 +806,31 @@ def add_object(item):
 
 
 def display_inventory():
-    print(in_my_pockets)
+    box = Rect((0, 45), (800, 105))
+    screen.draw.filled_rect(box, BLACK)
+
+    if len(in_my_pockets) == 0:
+        return
+
+    start_display = (selected_item // 16) * 16
+    list_to_show = in_my_pockets[start_display : start_display + 16]
+    selected_marker = selected_item % 16
+
+    for item_counter in range(len(list_to_show)):
+        item_number = list_to_show[item_counter]
+        image = objects[item_number][0]
+        screen.blit(image, (25 + (46 * item_counter), 90))
+
+    box_left = (selected_marker * 46) - 3
+    box = Rect((22 + box_left, 85), (40, 40))
+    screen.draw.rect(box, WHITE)
+    item_highlighted = in_my_pockets[selected_item]
+    description = objects[item_highlighted][2]
+    screen.draw.text(description, (20, 130), color="white")
 
 
 # Start game
 generate_map()
 clock.schedule_interval(game_loop, 0.03)
 clock.schedule_interval(adjust_wall_transparency, 0.05)
+clock.schedule_interval(display_inventory, 1)
