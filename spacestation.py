@@ -92,6 +92,9 @@ WHITE = (255, 255, 255)
 GREEN = (0, 255, 0)
 RED = (128, 0, 0)
 
+air, energy = 100, 100
+suit_stitched, air_fixed = False, False
+launch_frame = 0
 
 # Map details
 MAP_WIDTH = 5
@@ -611,6 +614,9 @@ def game_loop():
     if keyboard.space:
         examine_object()
 
+    if keyboard.u:
+        use_object()
+
     # if the player is standing somewhere they shouldn't, move them back
     if room_map[player_y][player_x] not in items_player_may_stand_on:
         # or hazard_map[player_y][player_x] != 0:
@@ -768,6 +774,31 @@ in_my_pockets = [55]
 selected_item = 0
 item_carrying = in_my_pockets[selected_item]
 
+RECIPES = [
+    [62, 35, 63],
+    [76, 28, 77],
+    [78, 38, 54],
+    [73, 74, 75],
+    [59, 54, 60],
+    [77, 55, 56],
+    [56, 57, 58],
+    [71, 65, 72],
+    [88, 58, 89],
+    [89, 60, 90],
+    [67, 35, 68]
+]
+
+checksum = 0
+check_counter = 1
+for recipe in RECIPES:
+    checksum += (recipe[0] * check_counter + recipe[1] * (check_counter + 1)
+                 + recipe[2] * (check_counter + 2))
+    check_counter += 3
+print(len(RECIPES), "recipes")
+assert len(RECIPES) == 11, "Expected 11 recipes"
+assert checksum == 37296, "Error in recipes data"
+print("Recipe checksum:", checksum)
+
 
 def find_object_start_x():
     checker_x = player_x
@@ -880,6 +911,133 @@ def examine_object():
                 description = "You found " + objects[prop_number][3]
                 sounds.combine.play()
     show_text(description, 0)
+    time.sleep(0.5)
+
+
+def use_object():
+    global room_map, props, item_carrying, air, selected_item, energy
+    global in_my_pockets, suit_stitched, air_fixed, game_over
+
+    use_message = "You fiddle around with it but don't get anywhere."
+    standard_responses = {
+        4: "Air is running out! You can't take this lying down!",
+        6: "This is no time to sit around!",
+        7: "This is no time to sit around!",
+        32: "It shakes and rumbles, but nothing else happens.",
+        34: "Ah! That's better. Now wash your hands.",
+        35: "You wash your hands and shake the water off.",
+        37: "The test tubes smoke slightly as you shake them.",
+        54: "You chew the gum. It's sticky like glue.",
+        55: "The yoyo bounces up and down, slightly slower than on Earth",
+        56: "It's a bit too fiddly. Can you thread it on something?",
+        59: "You need to fix the leak before you can use the canister",
+        61: "You try signalling with the mirror, but nobody can see you.",
+        62: "Don't throw resources away. Things might come in handy...",
+        67: "To enjoy yummy space food, just add water!",
+        75: "You are at Sector: " + str(current_room) + " // X: " \
+            + str(player_x) + " // Y: " + str(player_y)
+    }
+
+    # Get object number at player's location.
+    item_player_is_on = get_item_under_player()
+    for this_item in [item_player_is_on, item_carrying]:
+        if this_item in standard_responses:
+            use_message = standard_responses[this_item]
+
+    if item_carrying == 70 or item_player_is_on == 70:
+        use_message = "Banging Tunes!"
+        sounds.steelmusic.play()
+
+    elif item_player_is_on == 11:
+        use_message = "Air: " + str(air) + "% / Energy: " + str(energy) + "% \ "
+        if not suit_stitched:
+            use_message += "*ALERT* SUIT FABRIC TORN / "
+        if not air_fixed:
+            use_message += "*ALERT* SUIT AIR BOTTLE MISSING"
+        if suit_stitched and air_fixed:
+            use_message += " SUIT OK"
+        show_text(use_message, 0)
+        sounds.say_status_report.play()
+        time.sleep(0.5)
+        # If "on" the computer, player intention is clearly status update.
+        # Return to stop another object use accidentally overriding this.
+        return
+
+    elif item_carrying == 60 or item_player_is_on == 60:
+        use_message = "You fix " + objects[60][3] + " to the suit"
+        air_fixed = True
+        air = 90
+        air_countdown()
+        remove_object(60)
+
+    elif (item_carrying == 58 or item_player_is_on == 58) and not suit_stitched:
+        use_message = "You use " + objects[56][3] + " to repair the suit fabric"
+        suit_stitched = True
+        remove_object(60)
+
+    elif (item_carrying == 72 or item_player_is_on == 72):
+        use_message = "You radio for help. A rescue ship is coming. " \
+                      "Rendezvous section 13, outside."
+        props[40][0] = 13
+
+    elif (item_carrying == 66 or item_player_is_on == 66) and current_room in\
+            outdoor_rooms:
+        use_message = "You dig..."
+        if (current_room == LANDER_SECTOR and player_x == LANDER_X
+            and player_y == LANDER_Y):
+            add_object(71)
+            use_message = "You found the Poodle lander!"
+
+    elif item_player_is_on == 40:
+        clocks.unschedule(air_countdown)
+        show_text("Congratulations, " + PLAYER_NAME + "!", 0)
+        show_text("Mission success! You have made it to safety.", 1)
+        game_over = True
+        sounds.take_off.play()
+        game_completion_sequence()
+
+    elif item_player_is_on == 16:
+        energy += 1
+        if energy > 100:
+            energy = 100
+        use_message = "You munch the lettuce and get a little energy back"
+        draw_energy_air()
+
+    elif item_carrying == 68 or item_player_is_on == 68:
+        energy = 100
+        use_message = "You use the food to restore your energy"
+        remove_object(68)
+        draw_energy_air()
+
+    if suit_stitched and air_fixed:
+        # open airlock access
+        if current_room == 31 and props[20][0] == 31:
+            open_door(20) # includes removing the door
+            sounds.say_airlock_open.play()
+            show_text("The computer tells you the airlock is now open.", 1)
+        elif props[20][0] == 31:
+            props[20][0] = 0 # remove door from map
+            sounds.say_airlock_open.play()
+            show_text("The computer tells you the airlock is now open.", 1)
+
+    for recipe in RECIPES:
+        ingredient1 = recipe[0]
+        ingredient2 = recipe[1]
+        combination = recipe[2]
+        if (item_carrying == ingredient1 and item_player_is_on == ingredient2) \
+            or (item_carrying == ingredient2 and item_player_is_on ==
+                ingredient1):
+            use_message = "You combine " + objects[ingredient1][3] \
+                        + " and " + objects[ingredient2][3] + " to make " + \
+                        objects[combination][3]
+            if item_player_is_on in props.keys():
+                props[item_player_is_on][0] = 0
+                room_map[player_y][player_x] = get_floor_type()
+            in_my_pockets.remove(item_carrying)
+            add_object(combination)
+            sounds.combine.play()
+
+    show_text(use_message, 0)
     time.sleep(0.5)
 
 
