@@ -829,6 +829,60 @@ def display_inventory():
     screen.draw.text(description, (20, 130), color="white")
 
 
+def drop_object(old_y, old_x):
+    global room_map, props
+    # places we can drop items
+    if room_map[old_y][old_x] in [0, 2, 39]:
+        props[item_carrying][0] = current_room
+        props[item_carrying][1] = old_y
+        props[item_carrying][2] = old_x
+        room_map[old_y][old_x] = item_carrying
+        show_text("you have dropped " + objects[item_carrying][3], 0)
+        sounds.drop.play()
+        remove_object(item_carrying)
+        time.sleep(0.5)
+    else:
+        # only occurs if prop already occupies drop location
+        show_text("You can't drop that here.", 0)
+        time.sleep(0.5)
+
+
+def remove_object(item):
+    global selected_item, in_my_pockets, item_carrying
+    in_my_pockets.remove(item)
+    selected_item = selected_item - 1
+    if selected_item < 0:
+        selected_item = 0
+    # if not carrying anything
+    if len(in_my_pockets) == 0:
+        # set item_carrying to false
+        item_carrying = False
+    else:
+        # otherwise set it to new selected items
+        item_carrying = in_my_pockets[selected_item]
+    display_inventory()
+
+
+def examine_object():
+    item_player_is_on = get_item_under_player()
+    left_tile_of_item = find_object_start_x()
+    if item_player_is_on in [0, 2]:
+        # don't describe the floor
+        return
+    description = "You see: " + objects[item_player_is_on][2]
+    for prop_number, details in props.items():
+        # props = object number: [room number, y, x]
+        # If prop is hidden (= at player's location but not on map)
+        if details[0] == current_room:
+            if (details[1] == player_y and details[2] == left_tile_of_item
+            and room_map[details[1]][details[2]] != prop_number):
+                add_object(prop_number)
+                description = "You found " + objects[prop_number][3]
+                sounds.combine.play()
+    show_text(description, 0)
+    time.sleep(0.5)
+
+
 # Start game
 generate_map()
 clock.schedule_interval(game_loop, 0.03)
