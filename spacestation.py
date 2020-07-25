@@ -1061,10 +1061,10 @@ def game_completion_sequence():
         clock.schedule(game_completion_sequence, 0.25)
     else:
         screen.surface.set_clip(None)
-        screen.draw.text("MISSION", (200, 380), color = "white",
-                         fontsize = 128, shadow = (1, 1), scolor = "black")
-        screen.draw.text("COMPLETE", (145, 480), color = "white",
-                         fontsize = 128, shadow = (1, 1), scolor = "black")
+        screen.draw.text("MISSION", (200, 380), color="white",
+                         fontsize=128, shadow=(1, 1), scolor="black")
+        screen.draw.text("COMPLETE", (145, 480), color="white",
+                         fontsize=128, shadow=(1, 1), scolor="black")
         sounds.completion.play()
         sounds.say_mission_complete.play()
 
