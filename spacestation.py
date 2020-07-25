@@ -1041,6 +1041,34 @@ def use_object():
     time.sleep(0.5)
 
 
+def game_completion_sequence():
+    # initial value of launch_frame = 0 as above in variables
+    global launch_frame
+    box = Rect((0, 150), (800, 600))
+    screen.draw.filled_rect(box, (128, 0, 0))
+    box = Rect((0, top_left_y - 30), (800, 390))
+    screen.surface.set_clip(box)
+
+    for y in range(0, 13):
+        for x in range(0, 13):
+            draw_image(images.soil, y, x)
+
+
+    launch_frame += 1
+    if launch_frame < 9:
+        draw_image(images.rescue_ship, 8 - launch_frame, 6)
+        draw_shadow(images.rescue_ship_shadow, 8 + launch_frame, 6)
+        clock.schedule(game_completion_sequence, 0.25)
+    else:
+        screen.surface.set_clip(None)
+        screen.draw.text("MISSION", (200, 380), color = "white",
+                         fontsize = 128, shadow = (1, 1), scolor = "black")
+        screen.draw.text("COMPLETE", (145, 480), color = "white",
+                         fontsize = 128, shadow = (1, 1), scolor = "black")
+        sounds.completion.play()
+        sounds.say_mission_complete.play()
+
+
 # Start game
 generate_map()
 clock.schedule_interval(game_loop, 0.03)
