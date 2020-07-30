@@ -496,7 +496,12 @@ def generate_map():
 
 # Game Loop
 def start_room():
+    global airlock_door_frame
     show_text(f"Welcome to Room {current_room}, {room_name}", 0)
+    # room with self-shutting airlock doors
+    if current_room == 26:
+        airlock_door_frame = 0
+        clock.schedule_interval(door_in_room_26, 0.05)
 
 
 def game_loop():
@@ -524,25 +529,25 @@ def game_loop():
 
 # Move on key press
     if player_frame == 0:
-        if keyboard.right:
+        if keyboard.d:
             from_player_x = player_x
             from_player_y = player_y
             player_x += 1
             player_direction = "right"
             player_frame = 1
-        elif keyboard.left:
+        elif keyboard.a:
             from_player_x = player_x
             from_player_y = player_y
             player_x -= 1
             player_direction = "left"
             player_frame = 1
-        elif keyboard.up:
+        elif keyboard.w:
             from_player_x = player_x
             from_player_y = player_y
             player_y -= 1
             player_direction = "up"
             player_frame = 1
-        elif keyboard.down:
+        elif keyboard.s:
             from_player_x = player_x
             from_player_y = player_y
             player_y += 1
@@ -608,7 +613,7 @@ def game_loop():
         item_carrying = in_my_pockets[selected_item]
         display_inventory()
 
-    if keyboard.d and item_carrying:
+    if keyboard.l and item_carrying:
         drop_object(old_player_y, old_player_x)
 
     if keyboard.space:
@@ -616,6 +621,15 @@ def game_loop():
 
     if keyboard.u:
         use_object()
+
+    # teleportation command (for testing)
+    if keyboard.x:
+        current_room = int(input("Teleport to:"))
+        player_x = 2
+        player_y = 2
+        generate_map()
+        start_room()
+        sounds.teleport.play()
 
     # if the player is standing somewhere they shouldn't, move them back
     if room_map[player_y][player_x] not in items_player_may_stand_on:
@@ -1051,7 +1065,7 @@ def use_object():
             sounds.combine.play()
 
     # {key object number: door object number}
-    ACCESS_DICTIONARY = { 79:22, 80:23, 81,24 }
+    ACCESS_DICTIONARY = { 79:22, 80:23, 81:24 }
     if item_carrying in ACCESS_DICTIONARY:
         door_number = ACCESS_DICTIONARY[item_carrying]
         if props[door_number][0] == current_room:
@@ -1097,7 +1111,7 @@ def open_door(opening_door_number):
     global door_frames, door_shadow_frames
     global door_frame_number, door_object_number
     door_frames = [images.door1, images.door2, images.door3,
-                   images.door4, images.door5]
+                   images.door4, images.door]
     # final frame restores shadow ready for when door reappears
     door_shadow_frames = [images.door1_shadow, images.door2_shadow,
                           images.door3_shadow, images.door4_shadow,
@@ -1127,6 +1141,75 @@ def close_door(closing_door_number):
             # move them up
             player_y = room_height - 2
     do_door_animation()
+
+
+def do_door_animation():
+    global door_frames, door_frame_number, door_object_number, objects
+    objects[door_object_number][0] = door_frames[door_frame_number]
+    objects[door_object_number][1] = door_shadow_frames[door_frame_number]
+    door_frame_number += 1
+    if door_frame_number == 5:
+        if door_frames[-1] == images.floor:
+            # remove door from props list
+            props[door_object_number][0] = 0
+        # regen room map from the props to put the door in the room if needed
+        generate_map()
+    else:
+        clock.schedule(do_door_animation, 0.15)
+
+
+def shut_engineering_door():
+    global current_room, door_room_number, props
+    # door from room 32 to engineering bay
+    props[25][0] = 32
+    # door inside engineering bay
+    props[26][0] = 27
+    generate_map()
+    if current_room == 27:
+        close_door(26)
+    if current_room == 32:
+        close_door(25)
+    show_text("The computer tells you the doors are closed.", 1)
+    sounds.say_doors_closed.play()
+
+
+def door_in_room_26():
+    global airlock_door_frame, room_map
+    frames = [images.door1, images.door2, images.door3,
+              images.door4, images.door, images.floor]
+    shadow_frames = [images.door_shadow, images.door1_shadow,
+                     images.door2_shadow, images.door3_shadow,
+                     images.door4_shadow, None]
+
+    if current_room != 26:
+        clock.unschedule(door_in_room_26)
+        return
+
+    # prop 21 is the door in Room 26
+    if ((player_y == 8 and player_x == 2) or props[63] == [26, 8, 2]) and \
+            props[21][0] == 26:
+        airlock_door_frame += 1
+
+        if airlock_door_frame == 5:
+            props[21][0] = 0 # remove door from map when fully open
+            room_map[0][1] = 0
+            room_map[0][2] = 0
+            room_map[0][3] = 0
+
+    if ((player_y != 8 and player_x != 2) or props[63] == [26, 8, 2]) and \
+            airlock_door_frame > 0:
+
+        if airlock_door_frame == 5:
+            # add door to props and map so animation is shown
+            props[21][0] = 26
+            room_map[0][1] = 21
+            room_map[0][2] = 255
+            room_map[0][3] = 255
+        airlock_door_frame -= 1
+
+    objects[21][0] = frames[airlock_door_frame]
+    objects[21][1] = shadow_frames[airlock_door_frame]
+
 
 # Start game
 generate_map()
