@@ -1003,6 +1003,19 @@ def use_object():
         use_message = "You munch the lettuce and get a little energy back"
         draw_energy_air()
 
+    elif item_player_is_on == 42:
+        if current_room == 27:
+            open_door(26)
+        # door from RM32 to engineering bay
+        props[25][0] = 0
+        # door inside engineering bay
+        props[26][0] = 0
+        clock.schedule_unique(shut_engineering_door, 60)
+        use_message = "You press the button"
+        show_text("Door to engineering bay is open for 60 seconds", 1)
+        sounds.say_doors_open.play()
+        sounds.doors.play()
+
     elif item_carrying == 68 or item_player_is_on == 68:
         energy = 100
         use_message = "You use the food to restore your energy"
@@ -1037,6 +1050,16 @@ def use_object():
             add_object(combination)
             sounds.combine.play()
 
+    # {key object number: door object number}
+    ACCESS_DICTIONARY = { 79:22, 80:23, 81,24 }
+    if item_carrying in ACCESS_DICTIONARY:
+        door_number = ACCESS_DICTIONARY[item_carrying]
+        if props[door_number][0] == current_room:
+            use_message = "You unlock the door!"
+            sounds.say_doors_open.play()
+            sounds.doors.play()
+            open_door(door_number)
+
     show_text(use_message, 0)
     time.sleep(0.5)
 
@@ -1068,6 +1091,42 @@ def game_completion_sequence():
         sounds.completion.play()
         sounds.say_mission_complete.play()
 
+
+# Doors
+def open_door(opening_door_number):
+    global door_frames, door_shadow_frames
+    global door_frame_number, door_object_number
+    door_frames = [images.door1, images.door2, images.door3,
+                   images.door4, images.door5]
+    # final frame restores shadow ready for when door reappears
+    door_shadow_frames = [images.door1_shadow, images.door2_shadow,
+                          images.door3_shadow, images.door4_shadow,
+                          images.door_shadow]
+    door_frame_number = 0
+    door_object_number = opening_door_number
+    do_door_animation()
+
+
+def close_door(closing_door_number):
+    global door_frames, door_shadow_frames
+    global door_frame_number, door_object_number, player_y
+    door_frames = [images.door4, images.door3, images.door2,
+                   images.door1, images.door4]
+    door_shadow_frames = [images.door4_shadow, images.door3_shadow,
+                          images.door2_shadow, images.door1_shadow,
+                          images.door_shadow]
+    door_frame_number = 0
+    door_object_number = closing_door_number
+    # if player is in same row as a door, they must be in open doorway
+    if player_y == props[door_object_number][1]:
+        # if in the top doorway
+        if player_y == 0:
+            # move them down
+            player_y = 1
+        else:
+            # move them up
+            player_y = room_height - 2
+    do_door_animation()
 
 # Start game
 generate_map()
