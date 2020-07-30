@@ -1210,9 +1210,58 @@ def door_in_room_26():
     objects[21][0] = frames[airlock_door_frame]
     objects[21][1] = shadow_frames[airlock_door_frame]
 
+def draw_energy_air():
+    box = Rect((20, 765), (350, 20))
+    screen.draw.filled_rect(box, BLACK)
+    screen.draw.text("AIR", (20, 766), color=BLUE)
+    screen.draw.text("ENERGY", (180, 766), color=YELLOW)
+
+    if air > 0:
+        box = Rect((50, 765), (air, 20))
+        screen.draw.filled_rect(box, BLUE)
+
+    if energy > 0:
+        box = Rect((250, 765), (energy, 20))
+        screen.draw.filled_rect(box, YELLOW)
+
+def end_the_game(reason):
+    global game_over
+    show_text(reason, 1)
+    game_over = True
+    sounds.say_mission_fail.play()
+    sounds.gameover.play()
+    screen.draw.text("GAME OVER", (120, 400), color = "white",
+                     fontsize = 128, shadow = (1, 1), scolor = "black")
+
+
+def air_countdown():
+    global air, game_over
+    if game_over:
+        # don't sap air when already dead
+        return
+    air -= 1
+    if air == 20:
+        sounds.say_air_low.play()
+    if air == 10:
+        sounds.say_act_now.play()
+    draw_energy_air()
+    if air < 1:
+        end_the_game("Out of AIR!")
+
+
+def alarm():
+    show_text("Air is running out, " + PLAYER_NAME + "! Get to safety, "
+                                                     "& radio for help!", 1)
+    sounds.alarm.play(3)
+    sounds.say_breach.play()
+
 
 # Start game
 generate_map()
 clock.schedule_interval(game_loop, 0.03)
 clock.schedule_interval(adjust_wall_transparency, 0.05)
-clock.schedule_interval(display_inventory, 1)
+clock.schedule_unique(display_inventory, 1)
+clock.schedule_unique(draw_energy_air, 0.5)
+clock.schedule_unique(alarm, 10)
+# higher number give a longer time wait
+clock.schedule_interval(air_countdown, 5)
