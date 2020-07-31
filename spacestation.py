@@ -493,6 +493,10 @@ def generate_map():
             for tile_number in range(1, image_width_in_tiles):
                 room_map[prop_y][prop_x + tile_number] = 255
 
+    hazard_map = [] # empty list
+    for y in range(room_height)
+        hazard_map.append( [0] * room_width )
+
 
 # Game Loop
 def start_room():
@@ -502,6 +506,7 @@ def start_room():
     if current_room == 26:
         airlock_door_frame = 0
         clock.schedule_interval(door_in_room_26, 0.05)
+    hazard_start()
 
 
 def game_loop():
@@ -557,7 +562,7 @@ def game_loop():
     # check for exiting room
     # go through door on right
     if player_x == room_width:
-        # clock.unschedule(hazard_move)
+        clock.unschedule(hazard_move)
         current_room += 1
         generate_map()
         player_x = 0
@@ -569,7 +574,7 @@ def game_loop():
 
     # go through door on left
     if player_x == -1:
-        # clock.unschedule(hazard_move)
+        clock.unschedule(hazard_move)
         current_room -= 1
         generate_map()
         player_x = room_width - 1
@@ -581,7 +586,7 @@ def game_loop():
 
     # go through door on bottom
     if player_y == room_height:
-        # clock.unschedule(hazard_move)
+        clock.unschedule(hazard_move)
         current_room += MAP_WIDTH
         generate_map()
         player_y = 0
@@ -593,7 +598,7 @@ def game_loop():
 
     # go through door on top
     if player_y == -1:
-        # clock.unschedule(hazard_move)
+        clock.unschedule(hazard_move)
         current_room -= MAP_WIDTH
         generate_map()
         player_y = room_height - 1
@@ -1254,6 +1259,42 @@ def alarm():
                                                      "& radio for help!", 1)
     sounds.alarm.play(3)
     sounds.say_breach.play()
+
+
+# hazards
+hazard_data = {
+    # room number: [[y, x, direction, bounce addition to direction]]
+    28: [[1, 8, 2, 1], [7, 3, 4, 1]], 32: [[1, 5, 4, -1]],
+    34: [[5, 1, 1, 1], [5, 5, 1, 2]], 35: [[4, 4, 1, 2], [2, 5, 2, 2]],
+    36: [[2, 1, 2, 2]], 38: [[1, 4, 3, 2], [5, 8, 1, 2]],
+    40: [[3, 1, 3, -1], [6, 5, 2, 2], [7, 5, 4, 2]],
+    41: [[4, 5, 2, 2], [6, 3, 4, 2], [8, 1, 2, 2]],
+    42: [[2, 1, 2, 2], [4, 3, 2, 2], [6, 5, 2, 2]],
+    46: [[2, 1, 2, 2]],
+    48: [[1, 8, 3, 2], [8, 8, 1, 2], [3, 9, 3, 2]]
+}
+
+
+def deplete_energy(penalty):
+    global energy, game_over
+    if game_over:
+        # don't sap energy
+        return
+    energy = energy - penalty
+    draw_energy_air()
+    if energy < 1:
+        end_the_game("You're out of energy!")
+
+
+def hazard_start():
+    global current_room_hazards_list, hazard_map
+    if current_room in hazard_data.keys():
+        current_room_hazards_list = hazard_date[current_room]
+        for hazard in current_room_hazards_list:
+            hazard_y = hazard[0]
+            hazard_x = hazard[1]
+            hazard_map[hazard_y][hazard_x] = 49 + (current_room % 3)
+        clock.schedule_interval(hazard_move, 0.15)
 
 
 # Start game
